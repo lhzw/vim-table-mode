@@ -124,33 +124,46 @@ function! tablemode#align#Align(lines) "{{{2
     endif
   endfor
 
-  let maxes = []
+  let b:maxes = []
   let line = lines[g:table_mode_baseline]
   echo line
   let stext = line.text
   "if len(stext) <= 1 | continue | endif
-  if len(stext) > 1
+  if len(stext) > 1 && empty(b:maxes)
       for i in range(len(stext))
           echo "i: " . i
-          if i == len(maxes)
-              "let maxes += [ tablemode#utils#StrDisplayWidth(stext[i]) ]
+          if i == len(b:maxes)
+              "let b:maxes += [ tablemode#utils#StrDisplayWidth(stext[i]) ]
               " Remove the spaces around the cell, as below will add it back
-              let maxes += [ tablemode#utils#StrDisplayWidth(stext[i]) -2 ]
-              echo "if, maxes[i]: " . maxes[i]
+              " 这样直接减2,会出现负数，|不需要减2,只需要对单元格减2,因为没有
+              " 移除其两边的空格
+              "let b:maxes += [ tablemode#utils#StrDisplayWidth(stext[i]) -2 ]
+              "return strdisplaywidth(a:string)
+              if i == 0
+                  let b:maxes += [ tablemode#utils#StrDisplayWidth(stext[i])]
+              else
+                  let tmp = tablemode#utils#StrDisplayWidth(stext[i])
+                  if tmp <= 1   " handle the separator
+                      let b:maxes += [ tablemode#utils#StrDisplayWidth(stext[i])]
+                  else
+                      let b:maxes += [ tablemode#utils#StrDisplayWidth(stext[i]) -2 ]
+                  endif
+              endif
+              echo "if, b:maxes[i]: " . b:maxes[i]
           else
-              let maxes[i] = max([ maxes[i], tablemode#utils#StrDisplayWidth(stext[i]) ])
-              echo "else max, maxes[i]: " . maxes[i]
+              let b:maxes[i] = max([ b:maxes[i], tablemode#utils#StrDisplayWidth(stext[i]) ])
+              echo "else max, b:maxes[i]: " . b:maxes[i]
           endif
       endfor
   endif
-  for x in maxes
+  for x in b:maxes
       echo " " . x
   endfor
 
   echo "tablemode#align#alignments(lines[0].lnum, len(lines[0].text))"
   let alignments = tablemode#align#alignments(lines[0].lnum, len(lines[0].text))
   for ii in alignments
-  echo "ii: " . ii
+      echo "ii: " . ii
   endfor
 
   "for idx in range(len(lines))
@@ -160,17 +173,34 @@ function! tablemode#align#Align(lines) "{{{2
   for idx in range(g:table_mode_baseline+1, len(lines)-1)
     let tlnum = lines[idx].lnum
     let tline = lines[idx].text
+    "let tleftline = map(range(len(tline)), '') " 保存长于列宽的剩余数据，准备新起一行
+    let tleftline = repeat([''], len(tline)) " 保存长于列宽的剩余数据，准备新起一行
+    "let tleftline = [] " 保存长于列宽的剩余数据，准备新起一行
+    "for jdx in range(len(tline))
+    "    let tleftline += ['']
+    "endfor
+    for ii in tleftline
+        echo "in tleftline: <" . ii . ">"
+    endfor
 
     if len(tline) <= 1 | continue | endif
     for jdx in range(len(tline))
       " Dealing with the header being the first line
       if jdx >= len(alignments) | call add(alignments, 'l') | endif
-      echo "let field = s:Padding(tline[jdx], maxes[jdx], alignments[jdx])"
-      let field = s:Padding(tline[jdx], maxes[jdx], alignments[jdx])
+      echo "let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])"
+      let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])
       echo "field: <" . field . ">"
+      if len(field) > b:maxes[jdx]
+          let tleftline[jdx] = field[b:maxes[jdx]:]
+          "右包含，所以需要减1
+          let field = field[:b:maxes[jdx]-1]
+      endif
       let tline[jdx] = field . (jdx == 0 || jdx == len(tline) ? '' : ' ')
       for ii in tline
           echo "in tline: <" . ii . ">"
+      endfor
+      for ii in tleftline
+          echo "in tleftline: <" . ii . ">"
       endfor
     endfor
 

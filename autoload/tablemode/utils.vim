@@ -28,7 +28,7 @@ endfunction
 
 function! tablemode#utils#StrDisplayWidth(string) "{{{2
   if exists('*strdisplaywidth')
-      echo "exists('*strdisplaywidth')"
+    " echo "exists('*strdisplaywidth')"
     return strdisplaywidth(a:string)
   else
     " Implement the tab handling part of strdisplaywidth for vim 7.2 and

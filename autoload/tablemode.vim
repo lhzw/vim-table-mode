@@ -173,6 +173,7 @@ function! tablemode#TableizeInsertMode() "{{{2
         echo "normal! 0"
     endif
     normal! 0
+    " What's this for???
     call search(repeat('[^' . g:table_mode_separator . ']*' . g:table_mode_separator, column) . '\s\{-\}' . repeat('.', position), 'ce', line('.'))
   endif
 endfunction
