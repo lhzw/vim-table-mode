@@ -197,13 +197,15 @@ function! tablemode#table#Realign(line) "{{{2
 
   let lines = []
   let [lnum, blines] = [line, []]
-  " process the line before the current line
+  " process the current lines and the lines wrapped before this line, may be
+  " wrapped, leaving the others untouched maybe need to move the following
+  " contents' line as we may add or delete some lines here
   while tablemode#table#IsTable(lnum)
     if tablemode#table#IsBorder(lnum)
       echo "lnum in if: " . lnum
-      call insert(blines, lnum)
+      "call insert(blines, lnum)
       let lnum -= 1
-      continue
+      break
     endif
     echo "lnum after if: " . lnum
     call insert(lines, {'lnum': lnum, 'text': getline(lnum)})
@@ -212,19 +214,16 @@ function! tablemode#table#Realign(line) "{{{2
   for ii in lines
       echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
   endfor
-  for jj in blines
-      echo "in blines: <" . jj . ">"
-  endfor
 
-  " process the line follows the current line
+  " process the wrapped lines follow the current line
   let lnum = line + 1
   echo "lnum: " . lnum
   while tablemode#table#IsTable(lnum)
     if tablemode#table#IsBorder(lnum)
       echo "lnum in if: " . lnum
-      call add(blines, lnum)
+      "call add(blines, lnum)
       let lnum += 1
-      continue
+      break
     endif
     echo "lnum after if: " . lnum
     call add(lines, {'lnum': lnum, 'text': getline(lnum)})
@@ -232,9 +231,6 @@ function! tablemode#table#Realign(line) "{{{2
   endwhile
   for ii in lines
       echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
-  endfor
-  for jj in blines
-      echo "in blines: <" . jj . ">"
   endfor
 
   echo "call tablemode#align#Align(lines)"
