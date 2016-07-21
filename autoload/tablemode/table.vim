@@ -197,26 +197,45 @@ function! tablemode#table#Realign(line) "{{{2
 
   let lines = []
   let [lnum, blines] = [line, []]
+  " process the line before the current line
   while tablemode#table#IsTable(lnum)
     if tablemode#table#IsBorder(lnum)
+      echo "lnum in if: " . lnum
       call insert(blines, lnum)
       let lnum -= 1
       continue
     endif
+    echo "lnum after if: " . lnum
     call insert(lines, {'lnum': lnum, 'text': getline(lnum)})
     let lnum -= 1
   endwhile
+  for ii in lines
+      echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
+  endfor
+  for jj in blines
+      echo "in blines: <" . jj . ">"
+  endfor
 
+  " process the line follows the current line
   let lnum = line + 1
+  echo "lnum: " . lnum
   while tablemode#table#IsTable(lnum)
     if tablemode#table#IsBorder(lnum)
+      echo "lnum in if: " . lnum
       call add(blines, lnum)
       let lnum += 1
       continue
     endif
+    echo "lnum after if: " . lnum
     call add(lines, {'lnum': lnum, 'text': getline(lnum)})
     let lnum += 1
   endwhile
+  for ii in lines
+      echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
+  endfor
+  for jj in blines
+      echo "in blines: <" . jj . ">"
+  endfor
 
   echo "call tablemode#align#Align(lines)"
   let lines = tablemode#align#Align(lines)

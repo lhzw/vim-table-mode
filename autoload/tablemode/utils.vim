@@ -22,7 +22,7 @@ endfunction
 " function! tablemode#utils#strlen {{{2
 " To count multibyte characters accurately
 function! tablemode#utils#strlen(text)
-    echo "calling: tablemode#utils#strlen(), argu: " . a:text
+    "echo "calling: tablemode#utils#strlen(), argu: " . a:text
   return strlen(substitute(a:text, '.', 'x', 'g'))
 endfunction
 
