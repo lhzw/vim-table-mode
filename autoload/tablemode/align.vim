@@ -171,6 +171,7 @@ function! tablemode#align#Align(lines) "{{{2
   " them to a string
   let offset = 0    " record the following row's offset
   let lines[g:table_mode_baseline].text = s:StripTrailingSpaces(join(lines[g:table_mode_baseline].text, ''))
+  let totallines = len(lines)
   for idx in range(g:table_mode_baseline+1, len(lines)-1)
     let tlnum = lines[idx].lnum
     let tline = lines[idx].text
@@ -178,26 +179,40 @@ function! tablemode#align#Align(lines) "{{{2
     let tleftline = repeat([''], len(tline)) " 保存长于列宽的剩余数据，准备新起一行
     "let tleftline = [] " 保存长于列宽的剩余数据，准备新起一行
     " 偶数位置是｜，分隔符，奇数位置是数据，需要保证分隔符就位
-    for jdx in range(1, len(tline), 2)
+    for jdx in range(1, len(tline)-1, 2) " right containing is very disgusting!!!
         let tleftline[jdx] = g:table_mode_separator
     endfor
     for ii in tleftline
         echo "in tleftline: <" . ii . ">"
     endfor
 
-    let left = 0
+    let loop = 0
     if len(tline) <= 1 | continue | endif
     while 1
+        let left = 0
+        echo "loop: " . loop
         " 遍历行内各列
         for jdx in range(len(tline))
+            echo "jdx: " . jdx
+            if g:debug && loop > 0
+                for ii in tline
+                    echo "b1 in tline: <" . ii . ">"
+                endfor
+            endif
             " Dealing with the header being the first line
             if jdx >= len(alignments) | call add(alignments, 'l') | endif
             " wrap first, then padding
             if len(tline[jdx]) > b:maxes[jdx]
+                echo "cell line too long, processing it now ..."
                 let left = 1
                 let tleftline[jdx] = tline[jdx][b:maxes[jdx]:]
                 "右包含，所以需要减1
                 let tline[jdx] = tline[jdx][:b:maxes[jdx]-1]
+            endif
+            if g:debug && loop > 0
+                for ii in tline
+                    echo "b2 in tline: <" . ii . ">"
+                endfor
             endif
             echo "let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])"
             let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])
@@ -212,7 +227,32 @@ function! tablemode#align#Align(lines) "{{{2
         endfor
 
         echo "let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))"
-        let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))
+        if loop == 0
+            " the first one use the original line buffer, the others will be
+            " put at the end
+            let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))
+        else
+            "let lines[totallines].text = s:StripTrailingSpaces(join(tline, ''))
+            "let lines[totallines].lnum = tlnum + loop
+            call insert(lines, {'lnum': tlnum + loop, 'text': s:StripTrailingSpaces(join(tline, ''))})
+            let totallines += 1
+        endif
+
+        if left
+            "let tline = tleftline  " Error, like a reference
+            let tline = tleftline[:]
+            for ii in tline
+                echo "in tline: <" . ii . ">"
+            endfor
+            let offset += 1
+            " Clean the tleftline
+            for jdx in range(0, len(tline)-1, 2)
+                let tleftline[jdx] = ''
+            endfor
+        else
+            break
+        endif
+        let loop += 1
     endwhile
   endfor
 
