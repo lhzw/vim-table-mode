@@ -7,6 +7,7 @@ function! tablemode#utils#throw(string) abort "{{{2
 endfunction
 
 function! tablemode#utils#line(row) "{{{2
+    echo "calling tablemode#utils#line(), argu: ". a:row
   if type(a:row) == type('')
     return line(a:row)
   else
@@ -21,11 +22,13 @@ endfunction
 " function! tablemode#utils#strlen {{{2
 " To count multibyte characters accurately
 function! tablemode#utils#strlen(text)
+    echo "calling: tablemode#utils#strlen(), argu: " . a:text
   return strlen(substitute(a:text, '.', 'x', 'g'))
 endfunction
 
 function! tablemode#utils#StrDisplayWidth(string) "{{{2
   if exists('*strdisplaywidth')
+      echo "exists('*strdisplaywidth')"
     return strdisplaywidth(a:string)
   else
     " Implement the tab handling part of strdisplaywidth for vim 7.2 and

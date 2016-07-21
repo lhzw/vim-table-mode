@@ -161,7 +161,11 @@ function! tablemode#table#AddBorder(line) "{{{2
 endfunction
 
 function! tablemode#table#Realign(line) "{{{2
+    if g:debug
+        echo "calling tablemode#table#Realign(line), argu: " . a:line
+    endif
   let line = tablemode#utils#line(a:line)
+  echo "line num: " . line
 
   let lines = []
   let [lnum, blines] = [line, []]
@@ -186,13 +190,17 @@ function! tablemode#table#Realign(line) "{{{2
     let lnum += 1
   endwhile
 
+  echo "call tablemode#align#Align(lines)"
   let lines = tablemode#align#Align(lines)
 
   for aline in lines
+      echo "aline.lnum: " . aline.lnum
+      echo "aline.text: " . aline.text
     call setline(aline.lnum, aline.text)
   endfor
 
   for bline in blines
+      echo "bline: " . bline
     call tablemode#table#AddBorder(bline)
   endfor
 endfunction
