@@ -240,6 +240,18 @@ function! tablemode#table#Realign(line) "{{{2
   "if offset == 0 " do nothing
   if offset != 0
       let followingLines = getline(s:startmovingline, '$')
+      let lastlinenum = line('$')
+      echo "lastlinenum: " . lastlinenum
+      " Remove the last several lines, or the last several lines will be
+      " duplicated
+      if offset < 0
+          let deletestart = lastlinenum + offset + 1
+          echo "deletestart: " . deletestart
+          " When there's normal there, it doesn't work
+          "echo 'execute "normal :" . deletestart . ",$delete"'
+          echo 'execute ":" . deletestart . ",$delete"'
+          execute ":" . deletestart . ",$delete"
+      endif
       call setline(s:startmovingline + offset, followingLines)
   endif
 
