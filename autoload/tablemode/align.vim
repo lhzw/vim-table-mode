@@ -169,6 +169,7 @@ function! tablemode#align#Align(lines) "{{{2
   "for idx in range(len(lines))
   " To ignore the baseline row, need to keep the baseline in lines to join
   " them to a string
+  let offset = 0    " record the following row's offset
   let lines[g:table_mode_baseline].text = s:StripTrailingSpaces(join(lines[g:table_mode_baseline].text, ''))
   for idx in range(g:table_mode_baseline+1, len(lines)-1)
     let tlnum = lines[idx].lnum
@@ -176,25 +177,31 @@ function! tablemode#align#Align(lines) "{{{2
     "let tleftline = map(range(len(tline)), '') " 保存长于列宽的剩余数据，准备新起一行
     let tleftline = repeat([''], len(tline)) " 保存长于列宽的剩余数据，准备新起一行
     "let tleftline = [] " 保存长于列宽的剩余数据，准备新起一行
-    "for jdx in range(len(tline))
-    "    let tleftline += ['']
-    "endfor
+    " 偶数位置是｜，分隔符，奇数位置是数据，需要保证分隔符就位
+    for jdx in range(1, len(tline), 2)
+        let tleftline[jdx] = g:table_mode_separator
+    endfor
     for ii in tleftline
         echo "in tleftline: <" . ii . ">"
     endfor
 
+    let left = 0
     if len(tline) <= 1 | continue | endif
+    while 1
+    " 遍历行内各列
     for jdx in range(len(tline))
       " Dealing with the header being the first line
       if jdx >= len(alignments) | call add(alignments, 'l') | endif
+      " wrap first, then padding
+      if len(tline[jdx]) > b:maxes[jdx]
+          let left = 1
+          let tleftline[jdx] = tline[jdx][b:maxes[jdx]:]
+          "右包含，所以需要减1
+          let tline[jdx] = tline[jdx][:b:maxes[jdx]-1]
+      endif
       echo "let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])"
       let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])
       echo "field: <" . field . ">"
-      if len(field) > b:maxes[jdx]
-          let tleftline[jdx] = field[b:maxes[jdx]:]
-          "右包含，所以需要减1
-          let field = field[:b:maxes[jdx]-1]
-      endif
       let tline[jdx] = field . (jdx == 0 || jdx == len(tline) ? '' : ' ')
       for ii in tline
           echo "in tline: <" . ii . ">"
@@ -206,6 +213,7 @@ function! tablemode#align#Align(lines) "{{{2
 
     echo "let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))"
     let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))
+    endwhile
   endfor
 
   return lines
