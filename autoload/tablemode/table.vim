@@ -222,7 +222,7 @@ function! tablemode#table#Realign(line) "{{{2
     if tablemode#table#IsBorder(lnum)
       echo "lnum in if: " . lnum
       "call add(blines, lnum)
-      let lnum += 1
+      let s:startmovingline = lnum  " record the following rows maybe need to adjust its line
       break
     endif
     echo "lnum after if: " . lnum
@@ -236,6 +236,13 @@ function! tablemode#table#Realign(line) "{{{2
   echo "call tablemode#align#Align(lines)"
   let [lines, offset] = tablemode#align#Align(lines)
   echo "offset in Realign: " . offset
+
+  "if offset == 0 " do nothing
+  if offset != 0
+      let followingLines = getline(s:startmovingline, '$')
+      call setline(s:startmovingline + offset, followingLines)
+  endif
+
 
   for aline in lines
       echo "aline.lnum: " . aline.lnum
