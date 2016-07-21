@@ -96,6 +96,8 @@ function! tablemode#align#alignments(lnum, ncols) "{{{2
   return alignments
 endfunction
 
+" Maybe one short cell line or several wrapped lines which need to be
+" concatenated
 function! tablemode#align#Align(lines) "{{{2
     echo "calling tablemode#align#Align(lines), argu: "
     echo "number of argument is: " . len(a:lines)
@@ -105,27 +107,47 @@ function! tablemode#align#Align(lines) "{{{2
   if empty(a:lines) | return [] | endif
   let lines = map(a:lines, 'map(v:val, "v:key =~# \"text\" ? tablemode#align#Split(v:val, g:table_mode_separator) : v:val")')
 
+  " there's no baseline in lines now, we get it from vim buffer
+  let baseline = []
+  call add(baseline, {'lnum': g:table_mode_baseline+1, 'text': getline(g:table_mode_baseline+1)})
+  let baselinesplit = map(baseline, 'map(v:val, "v:key =~# \"text\" ? tablemode#align#Split(v:val, g:table_mode_separator) : v:val")')
   echo "baseline: "
-  for item in lines[g:table_mode_baseline].text
+  for item in baselinesplit[0].text
       echo "<" . item . ">"
   endfor
-  for line in lines[g:table_mode_baseline+1:]
-      echo line
-    let stext = line.text
-    if len(stext) <= 1 | continue | endif
+  " concatenate the lines to one if needed
+  let orignalHeight = len(lines)
+  let l:all = lines[0].text[:]
+  for i in range(2, len(l:all)-1, 2)    " ignore the delimiter
+      let l:all[i] = tablemode#utils#strip(l:all[i])
+  endfor
 
-    if stext[0] !~ tablemode#table#StartExpr()
-      let stext[0] = s:StripTrailingSpaces(stext[0])
-    endif
-    if len(stext) >= 2
-      for i in range(1, len(stext)-1)
-        let stext[i] = tablemode#utils#strip(stext[i])
+  if orignalHeight > 1      " to avoid cross the boundary
+      for line in lines[1:]
+          echo line
+          let stext = line.text
+          if len(stext) <= 1 | continue | endif
+
+          if stext[0] !~ tablemode#table#StartExpr()
+              let stext[0] = s:StripTrailingSpaces(stext[0])
+          endif
+          if len(stext) >= 2
+              for i in range(2, len(stext)-1, 2)    " ignore the delimiter
+                  let stext[i] = tablemode#utils#strip(stext[i])
+                  echo "stext[i]: " . i . " <" . stext[i] . ">"
+                  if !empty(stext[i])
+                      let l:all[i] .= stext[i]
+                  endif
+              endfor
+          endif
       endfor
-    endif
+  endif
+  for i in l:all
+      echo "i in l:all: <" . i . ">"
   endfor
 
   let b:maxes = []
-  let line = lines[g:table_mode_baseline]
+  let line = baselinesplit[0]
   echo line
   let stext = line.text
   "if len(stext) <= 1 | continue | endif
@@ -160,24 +182,21 @@ function! tablemode#align#Align(lines) "{{{2
       echo " " . x
   endfor
 
+  " what's this for???
   echo "tablemode#align#alignments(lines[0].lnum, len(lines[0].text))"
-  let alignments = tablemode#align#alignments(lines[0].lnum, len(lines[0].text))
+  let alignments = tablemode#align#alignments(lines[0].lnum, len(l:all))
   for ii in alignments
       echo "ii: " . ii
   endfor
 
-  "for idx in range(len(lines))
   " To ignore the baseline row, need to keep the baseline in lines to join
-  " them to a string
+  " them to a string, realign's setline()
   let offset = 0    " record the following row's offset
-  let lines[g:table_mode_baseline].text = s:StripTrailingSpaces(join(lines[g:table_mode_baseline].text, ''))
   let totallines = len(lines)
-  for idx in range(g:table_mode_baseline+1, len(lines)-1)
-    let tlnum = lines[idx].lnum
-    let tline = lines[idx].text
-    "let tleftline = map(range(len(tline)), '') " 保存长于列宽的剩余数据，准备新起一行
+
+    let tlnum = lines[0].lnum
+    let tline = l:all
     let tleftline = repeat([''], len(tline)) " 保存长于列宽的剩余数据，准备新起一行
-    "let tleftline = [] " 保存长于列宽的剩余数据，准备新起一行
     " 偶数位置是｜，分隔符，奇数位置是数据，需要保证分隔符就位
     for jdx in range(1, len(tline)-1, 2) " right containing is very disgusting!!!
         let tleftline[jdx] = g:table_mode_separator
@@ -187,18 +206,13 @@ function! tablemode#align#Align(lines) "{{{2
     endfor
 
     let loop = 0
-    if len(tline) <= 1 | continue | endif
+    "if len(tline) <= 1 | continue | endif
     while 1
         let left = 0
         echo "loop: " . loop
         " 遍历行内各列
         for jdx in range(len(tline))
             echo "jdx: " . jdx
-            if g:debug && loop > 0
-                for ii in tline
-                    echo "b1 in tline: <" . ii . ">"
-                endfor
-            endif
             " Dealing with the header being the first line
             if jdx >= len(alignments) | call add(alignments, 'l') | endif
             " wrap first, then padding
@@ -208,11 +222,6 @@ function! tablemode#align#Align(lines) "{{{2
                 let tleftline[jdx] = tline[jdx][b:maxes[jdx]:]
                 "右包含，所以需要减1
                 let tline[jdx] = tline[jdx][:b:maxes[jdx]-1]
-            endif
-            if g:debug && loop > 0
-                for ii in tline
-                    echo "b2 in tline: <" . ii . ">"
-                endfor
             endif
             echo "let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])"
             let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])
@@ -226,14 +235,12 @@ function! tablemode#align#Align(lines) "{{{2
             endfor
         endfor
 
-        echo "let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))"
-        if loop == 0
+        echo "let l:all = s:StripTrailingSpaces(join(tline, ''))"
+        if loop < orignalHeight
             " the first one use the original line buffer, the others will be
             " put at the end
-            let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))
+            let lines[loop].text = s:StripTrailingSpaces(join(tline, ''))
         else
-            "let lines[totallines].text = s:StripTrailingSpaces(join(tline, ''))
-            "let lines[totallines].lnum = tlnum + loop
             call insert(lines, {'lnum': tlnum + loop, 'text': s:StripTrailingSpaces(join(tline, ''))})
             let totallines += 1
         endif
@@ -254,7 +261,6 @@ function! tablemode#align#Align(lines) "{{{2
         endif
         let loop += 1
     endwhile
-  endfor
 
   return lines
 endfunction
