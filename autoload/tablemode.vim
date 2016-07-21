@@ -156,6 +156,7 @@ function! tablemode#TableizeInsertMode() "{{{2
         echo tablemode#table#StartExpr() . g:table_mode_separator
     endif
   if tablemode#IsActive() && getline('.') =~# (tablemode#table#StartExpr() . g:table_mode_separator . g:table_mode_separator)
+    echo "call tablemode#table#AddBorder('.')"
     call tablemode#table#AddBorder('.')
     normal! A
   elseif tablemode#IsActive() && getline('.') =~# (tablemode#table#StartExpr() . g:table_mode_separator)
