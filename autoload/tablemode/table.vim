@@ -23,15 +23,15 @@ function! s:GenerateHeaderBorder(line) "{{{2
   echo "line: " . line
   if tablemode#table#IsRow(line - 1) || tablemode#table#IsRow(line + 1)
     let line_val = ''
-    if tablemode#table#IsRow(line + 1)
-      let line_val = getline(line + 1)
-      echo "line_val 1: " . line_val
-    endif
-    if tablemode#table#IsRow(line - 1) && tablemode#utils#strlen(line_val) < tablemode#utils#strlen(getline(line - 1))
-      let line_val = getline(line - 1)
-      echo "line_val 2: " . line_val
-    endif
-    echo "line_val 3: " . line_val
+    "if tablemode#table#IsRow(line + 1)
+    "  let line_val = getline(line + 1)
+    "  echo "line_val 1: " . line_val
+    "endif
+    "if tablemode#table#IsRow(line - 1) && tablemode#utils#strlen(line_val) < tablemode#utils#strlen(getline(line - 1))
+    "  let line_val = getline(line - 1)
+    "  echo "line_val 2: " . line_val
+    "endif
+    "echo "line_val 3: " . line_val
     let line_val = getline(g:table_mode_baseline + 1) " getline(0) returns empty
     echo "line_val 4: " . line_val
     if tablemode#utils#strlen(line_val) <= 1 | return s:DefaultBorder() | endif
