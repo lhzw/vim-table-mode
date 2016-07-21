@@ -188,31 +188,31 @@ function! tablemode#align#Align(lines) "{{{2
     let left = 0
     if len(tline) <= 1 | continue | endif
     while 1
-    " 遍历行内各列
-    for jdx in range(len(tline))
-      " Dealing with the header being the first line
-      if jdx >= len(alignments) | call add(alignments, 'l') | endif
-      " wrap first, then padding
-      if len(tline[jdx]) > b:maxes[jdx]
-          let left = 1
-          let tleftline[jdx] = tline[jdx][b:maxes[jdx]:]
-          "右包含，所以需要减1
-          let tline[jdx] = tline[jdx][:b:maxes[jdx]-1]
-      endif
-      echo "let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])"
-      let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])
-      echo "field: <" . field . ">"
-      let tline[jdx] = field . (jdx == 0 || jdx == len(tline) ? '' : ' ')
-      for ii in tline
-          echo "in tline: <" . ii . ">"
-      endfor
-      for ii in tleftline
-          echo "in tleftline: <" . ii . ">"
-      endfor
-    endfor
+        " 遍历行内各列
+        for jdx in range(len(tline))
+            " Dealing with the header being the first line
+            if jdx >= len(alignments) | call add(alignments, 'l') | endif
+            " wrap first, then padding
+            if len(tline[jdx]) > b:maxes[jdx]
+                let left = 1
+                let tleftline[jdx] = tline[jdx][b:maxes[jdx]:]
+                "右包含，所以需要减1
+                let tline[jdx] = tline[jdx][:b:maxes[jdx]-1]
+            endif
+            echo "let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])"
+            let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])
+            echo "field: <" . field . ">"
+            let tline[jdx] = field . (jdx == 0 || jdx == len(tline) ? '' : ' ')
+            for ii in tline
+                echo "in tline: <" . ii . ">"
+            endfor
+            for ii in tleftline
+                echo "in tleftline: <" . ii . ">"
+            endfor
+        endfor
 
-    echo "let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))"
-    let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))
+        echo "let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))"
+        let lines[idx].text = s:StripTrailingSpaces(join(tline, ''))
     endwhile
   endfor
 
