@@ -234,7 +234,8 @@ function! tablemode#table#Realign(line) "{{{2
   endfor
 
   echo "call tablemode#align#Align(lines)"
-  let lines = tablemode#align#Align(lines)
+  let [lines, offset] = tablemode#align#Align(lines)
+  echo "offset in Realign: " . offset
 
   for aline in lines
       echo "aline.lnum: " . aline.lnum

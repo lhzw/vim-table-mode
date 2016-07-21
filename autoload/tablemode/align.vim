@@ -116,13 +116,13 @@ function! tablemode#align#Align(lines) "{{{2
       echo "<" . item . ">"
   endfor
   " concatenate the lines to one if needed
-  let orignalHeight = len(lines)
+  let originalHeight = len(lines)
   let l:all = lines[0].text[:]
   for i in range(2, len(l:all)-1, 2)    " ignore the delimiter
       let l:all[i] = tablemode#utils#strip(l:all[i])
   endfor
 
-  if orignalHeight > 1      " to avoid cross the boundary
+  if originalHeight > 1      " to avoid cross the boundary
       for line in lines[1:]
           echo line
           let stext = line.text
@@ -192,7 +192,6 @@ function! tablemode#align#Align(lines) "{{{2
   " To ignore the baseline row, need to keep the baseline in lines to join
   " them to a string, realign's setline()
   let offset = 0    " record the following row's offset
-  let totallines = len(lines)
 
     let tlnum = lines[0].lnum
     let tline = l:all
@@ -236,14 +235,14 @@ function! tablemode#align#Align(lines) "{{{2
         endfor
 
         echo "let l:all = s:StripTrailingSpaces(join(tline, ''))"
-        if loop < orignalHeight
+        if loop < originalHeight
             " the first one use the original line buffer, the others will be
             " put at the end
             let lines[loop].text = s:StripTrailingSpaces(join(tline, ''))
         else
-            call insert(lines, {'lnum': tlnum + loop, 'text': s:StripTrailingSpaces(join(tline, ''))})
-            let totallines += 1
+            call add(lines, {'lnum': tlnum + loop, 'text': s:StripTrailingSpaces(join(tline, ''))})
         endif
+        let offset = 1 + loop - originalHeight
 
         if left
             "let tline = tleftline  " Error, like a reference
@@ -251,7 +250,7 @@ function! tablemode#align#Align(lines) "{{{2
             for ii in tline
                 echo "in tline: <" . ii . ">"
             endfor
-            let offset += 1
+            "let offset += 1
             " Clean the tleftline
             for jdx in range(0, len(tline)-1, 2)
                 let tleftline[jdx] = ''
@@ -262,5 +261,5 @@ function! tablemode#align#Align(lines) "{{{2
         let loop += 1
     endwhile
 
-  return lines
+  return [lines[:originalHeight+offset-1], offset]
 endfunction
