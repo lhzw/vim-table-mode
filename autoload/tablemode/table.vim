@@ -229,13 +229,18 @@ function! tablemode#table#Realign(line) "{{{2
     call add(lines, {'lnum': lnum, 'text': getline(lnum)})
     let lnum += 1
   endwhile
+  echo "There are <" . len(lines) . "> in lines"
   for ii in lines
       echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
   endfor
 
-  echo "call tablemode#align#Align(lines)"
-  let [lines, offset] = tablemode#align#Align(lines)
-  echo "offset in Realign: " . offset
+  if !empty(lines)
+      echo "call tablemode#align#Align(lines)"
+      let [lines, offset] = tablemode#align#Align(lines)
+      echo "offset in Realign: " . offset
+  else
+      return
+  endif
 
   "if offset == 0 " do nothing
   if offset != 0
@@ -255,15 +260,12 @@ function! tablemode#table#Realign(line) "{{{2
       call setline(s:startmovingline + offset, followingLines)
   endif
 
-
   for aline in lines
-      echo "aline.lnum: " . aline.lnum
-      echo "aline.text: " . aline.text
+      if g:debug
+          echo "aline.lnum: " . aline.lnum
+          echo "aline.text: " . aline.text
+      endif
     call setline(aline.lnum, aline.text)
   endfor
 
-  for bline in blines
-      echo "bline: " . bline
-    call tablemode#table#AddBorder(bline)
-  endfor
 endfunction
