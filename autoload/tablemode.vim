@@ -168,8 +168,10 @@ function! tablemode#TableizeInsertMode() "{{{2
         echo "column: " . column
         echo "position: " . position
     endif
-    echo "call tablemode#table#Realign('.')"
-    call tablemode#table#Realign('.')
+    if line('.') != g:table_mode_baseline + 1
+        echo "call tablemode#table#Realign('.')"
+        call tablemode#table#Realign('.')
+    endif
     if g:debug
         echo "normal! 0"
     endif
