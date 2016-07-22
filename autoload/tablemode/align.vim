@@ -16,7 +16,7 @@ function! s:Padding(string, length, where) "{{{3
         "sleep 500m
     endif
   let gap_length = a:length - tablemode#utils#StrDisplayWidth(a:string)
-  echo "gap_length: " . gap_length
+  "echo "gap_length: " . gap_length
   if a:where =~# 'l'
     return a:string . repeat(" ", gap_length)
   elseif a:where =~# 'r'
@@ -34,7 +34,9 @@ endfunction
 " All odd numbered elements are delimiters
 " All even numbered elements are non-delimiters (including zero)
 function! tablemode#align#Split(string, delim)
+    if g:debug
     echo "calling tablemode#align#Split(), argu: " . a:string . "  delim: " . a:delim
+    endif
   let rv = []
   let beg = 0
 
@@ -74,15 +76,17 @@ function! tablemode#align#Split(string, delim)
 endfunction
 
 function! tablemode#align#alignments(lnum, ncols) "{{{2
+    if g:debug
     echo "calling tablemode#align#alignments(lnum, ncols), argu: " . a:lnum . "  " . a:ncols
+    endif
   let achr = g:table_mode_align_char
-  echo "achr: " . achr
+  "echo "achr: " . achr
   let alignments = []
   if tablemode#table#IsBorder(a:lnum+1)
     let hcols = tablemode#align#Split(getline(a:lnum+1), '[' . g:table_mode_corner . g:table_mode_corner_corner . ']')
-    echo "hcols: " . hcols
+    "echo "hcols: " . hcols
     for idx in range(len(hcols))
-        echo "idx: " . idx
+        "echo "idx: " . idx
       " Right align if header
       call add(alignments, 'l')
       if hcols[idx] =~# achr . '[^'.achr.']\+' . achr
@@ -99,11 +103,13 @@ endfunction
 " Maybe one short cell line or several wrapped lines which need to be
 " concatenated
 function! tablemode#align#Align(lines) "{{{2
+    if g:debug
     echo "calling tablemode#align#Align(lines), argu: "
     echo "number of argument is: " . len(a:lines)
     for line in a:lines
         echo line
     endfor
+    endif
   if empty(a:lines) | return [] | endif
   let lines = map(a:lines, 'map(v:val, "v:key =~# \"text\" ? tablemode#align#Split(v:val, g:table_mode_separator) : v:val")')
 
@@ -111,10 +117,12 @@ function! tablemode#align#Align(lines) "{{{2
   let baseline = []
   call add(baseline, {'lnum': g:table_mode_baseline+1, 'text': getline(g:table_mode_baseline+1)})
   let baselinesplit = map(baseline, 'map(v:val, "v:key =~# \"text\" ? tablemode#align#Split(v:val, g:table_mode_separator) : v:val")')
+  if g:debug
   echo "baseline: "
   for item in baselinesplit[0].text
       echo "<" . item . ">"
   endfor
+  endif
   " concatenate the lines to one if needed
   let originalHeight = len(lines)
   let l:all = lines[0].text[:]
@@ -124,7 +132,7 @@ function! tablemode#align#Align(lines) "{{{2
 
   if originalHeight > 1      " to avoid cross the boundary
       for line in lines[1:]
-          echo line
+          "echo line
           let stext = line.text
           if len(stext) <= 1 | continue | endif
 
@@ -134,7 +142,7 @@ function! tablemode#align#Align(lines) "{{{2
           if len(stext) >= 2
               for i in range(2, len(stext)-1, 2)    " ignore the delimiter
                   let stext[i] = tablemode#utils#strip(stext[i])
-                  echo "stext[i]: " . i . " <" . stext[i] . ">"
+                  "echo "stext[i]: " . i . " <" . stext[i] . ">"
                   if !empty(stext[i])
                       let l:all[i] .= stext[i]
                   endif
@@ -142,18 +150,20 @@ function! tablemode#align#Align(lines) "{{{2
           endif
       endfor
   endif
+  if g:debug
   for i in l:all
       echo "i in l:all: <" . i . ">"
   endfor
+  endif
 
   let b:maxes = []
   let line = baselinesplit[0]
-  echo line
+  "echo line
   let stext = line.text
   "if len(stext) <= 1 | continue | endif
   if len(stext) > 1 && empty(b:maxes)
       for i in range(len(stext))
-          echo "i: " . i
+          "echo "i: " . i
           if i == len(b:maxes)
               "let b:maxes += [ tablemode#utils#StrDisplayWidth(stext[i]) ]
               " Remove the spaces around the cell, as below will add it back
@@ -171,23 +181,27 @@ function! tablemode#align#Align(lines) "{{{2
                       let b:maxes += [ tablemode#utils#StrDisplayWidth(stext[i]) -2 ]
                   endif
               endif
-              echo "if, b:maxes[i]: " . b:maxes[i]
+              "echo "if, b:maxes[i]: " . b:maxes[i]
           else
               let b:maxes[i] = max([ b:maxes[i], tablemode#utils#StrDisplayWidth(stext[i]) ])
-              echo "else max, b:maxes[i]: " . b:maxes[i]
+              "echo "else max, b:maxes[i]: " . b:maxes[i]
           endif
       endfor
   endif
+  if g:debug
   for x in b:maxes
       echo " " . x
   endfor
+  endif
 
   " what's this for???
-  echo "tablemode#align#alignments(lines[0].lnum, len(lines[0].text))"
+  "echo "tablemode#align#alignments(lines[0].lnum, len(lines[0].text))"
   let alignments = tablemode#align#alignments(lines[0].lnum, len(l:all))
+  if g:debug
   for ii in alignments
-      echo "ii: " . ii
+      echo "ii in alignments: " . ii
   endfor
+  endif
 
   " To ignore the baseline row, need to keep the baseline in lines to join
   " them to a string, realign's setline()
@@ -200,41 +214,42 @@ function! tablemode#align#Align(lines) "{{{2
     for jdx in range(1, len(tline)-1, 2) " right containing is very disgusting!!!
         let tleftline[jdx] = g:table_mode_separator
     endfor
-    for ii in tleftline
-        echo "in tleftline: <" . ii . ">"
-    endfor
+    "for ii in tleftline
+    "    echo "in tleftline: <" . ii . ">"
+    "endfor
 
     let loop = 0
     "if len(tline) <= 1 | continue | endif
     while 1
         let left = 0
-        echo "loop: " . loop
+        "echo "loop: " . loop
         " 遍历行内各列
         for jdx in range(len(tline))
-            echo "jdx: " . jdx
+            "echo "jdx: " . jdx
             " Dealing with the header being the first line
             if jdx >= len(alignments) | call add(alignments, 'l') | endif
             " wrap first, then padding
             if len(tline[jdx]) > b:maxes[jdx]
-                echo "cell line too long, processing it now ..."
+                "echo "cell line too long, processing it now ..."
                 let left = 1
                 let tleftline[jdx] = tline[jdx][b:maxes[jdx]:]
                 "右包含，所以需要减1
                 let tline[jdx] = tline[jdx][:b:maxes[jdx]-1]
             endif
-            echo "let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])"
+            "echo "let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])"
             let field = s:Padding(tline[jdx], b:maxes[jdx], alignments[jdx])
-            echo "field: <" . field . ">"
+            "echo "field: <" . field . ">"
             let tline[jdx] = field . (jdx == 0 || jdx == len(tline) ? '' : ' ')
+            if g:debug
             for ii in tline
                 echo "in tline: <" . ii . ">"
             endfor
             for ii in tleftline
                 echo "in tleftline: <" . ii . ">"
             endfor
+            endif
         endfor
 
-        echo "let l:all = s:StripTrailingSpaces(join(tline, ''))"
         if loop < originalHeight
             " the first one use the original line buffer, the others will be
             " put at the end
@@ -247,9 +262,9 @@ function! tablemode#align#Align(lines) "{{{2
         if left
             "let tline = tleftline  " Error, like a reference
             let tline = tleftline[:]
-            for ii in tline
-                echo "in tline: <" . ii . ">"
-            endfor
+            "for ii in tline
+            "    echo "in tline: <" . ii . ">"
+            "endfor
             "let offset += 1
             " Clean the tleftline
             for jdx in range(0, len(tline)-1, 2)

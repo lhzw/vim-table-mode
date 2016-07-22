@@ -1,6 +1,6 @@
 " Private Functions {{{1
 function! s:SetBufferOptDefault(opt, val) "{{{2
-    echo "calling s:SetBufferOptDefault(), argu: " . a:opt . "  " . a:val
+  "echo "calling s:SetBufferOptDefault(), argu: " . a:opt . "  " . a:val
   if !exists('b:' . a:opt)
     let b:{a:opt} = a:val
   endif
@@ -95,15 +95,15 @@ function! s:ToggleSyntax()
 endfunction
 
 function! s:SetActive(bool) "{{{2
-    echo "calling s:SetActive(bool) argu: ". a:bool
+  " echo "calling s:SetActive(bool) argu: ". a:bool
   let b:table_mode_active = a:bool
   call s:ToggleSyntax()
   call s:ToggleMapping()
   if tablemode#IsActive()
-    echo "doautocmd User TableModeEnabled"
+    "echo "doautocmd User TableModeEnabled"
     doautocmd User TableModeEnabled
   else
-    echo "doautocmd User TableModeDisabled"
+    "echo "doautocmd User TableModeDisabled"
     doautocmd User TableModeDisabled
   endif
 endfunction
@@ -142,7 +142,7 @@ endfunction
 
 " Public API {{{1
 function! tablemode#IsActive() "{{{2
-    echo "calling tablemode#IsActive() ..."
+  " echo "calling tablemode#IsActive() ..."
   if g:table_mode_always_active | return 1 | endif
 
   call s:SetBufferOptDefault('table_mode_active', 0)
@@ -150,13 +150,13 @@ function! tablemode#IsActive() "{{{2
 endfunction
 
 function! tablemode#TableizeInsertMode() "{{{2
-    echo "calling tablemode#TableizeInsertMode()"
     if g:debug
+        echo "calling tablemode#TableizeInsertMode()"
         echo tablemode#table#StartExpr() . g:table_mode_separator . g:table_mode_separator
         echo tablemode#table#StartExpr() . g:table_mode_separator
     endif
   if tablemode#IsActive() && getline('.') =~# (tablemode#table#StartExpr() . g:table_mode_separator . g:table_mode_separator)
-    echo "call tablemode#table#AddBorder('.')"
+    "echo "call tablemode#table#AddBorder('.')"
     call tablemode#table#AddBorder('.')
     normal! A
   elseif tablemode#IsActive() && getline('.') =~# (tablemode#table#StartExpr() . g:table_mode_separator)
@@ -169,7 +169,7 @@ function! tablemode#TableizeInsertMode() "{{{2
         echo "position: " . position
     endif
     if line('.') != g:table_mode_baseline + 1
-        echo "call tablemode#table#Realign('.')"
+        "echo "call tablemode#table#Realign('.')"
         call tablemode#table#Realign('.')
     endif
     if g:debug
@@ -182,17 +182,17 @@ function! tablemode#TableizeInsertMode() "{{{2
 endfunction
 
 function! tablemode#Enable() "{{{2
-    echo "tablemode#Enable() ..."
+    "echo "tablemode#Enable() ..."
   call s:SetActive(1)
 endfunction
 
 function! tablemode#Disable() "{{{2
-    echo "tablemode#Disable() ..."
+    "echo "tablemode#Disable() ..."
   call s:SetActive(0)
 endfunction
 
 function! tablemode#Toggle() "{{{2
-    echo "calling tablemode#Toggle() ..."
+    "echo "calling tablemode#Toggle() ..."
   if g:table_mode_always_active
     return 1
   endif

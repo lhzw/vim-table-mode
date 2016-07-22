@@ -20,7 +20,7 @@ function! s:GenerateHeaderBorder(line) "{{{2
         echo "calling s:GenerateHeaderBorder(), argu: " . a:line
     endif
   let line = tablemode#utils#line(a:line)
-  echo "line: " . line
+  "echo "line: " . line
   if tablemode#table#IsRow(line - 1) || tablemode#table#IsRow(line + 1)
     let line_val = ''
     "if tablemode#table#IsRow(line + 1)
@@ -33,11 +33,11 @@ function! s:GenerateHeaderBorder(line) "{{{2
     "endif
     "echo "line_val 3: " . line_val
     let line_val = getline(g:table_mode_baseline + 1) " getline(0) returns empty
-    echo "line_val 4: " . line_val
+    "echo "line_val 4: " . line_val
     if tablemode#utils#strlen(line_val) <= 1 | return s:DefaultBorder() | endif
 
     let border = substitute(line_val[stridx(line_val, g:table_mode_separator):strridx(line_val, g:table_mode_separator)], g:table_mode_separator, g:table_mode_corner, 'g')
-    echo "border 1: " . border
+    "echo "border 1: " . border
     " To accurately deal with unicode double width characters
     if tablemode#table#IsHeader(line - 1)
       let fill_columns = map(split(border, g:table_mode_corner),  'repeat(g:table_mode_header_fillchar, tablemode#utils#StrDisplayWidth(v:val))')
@@ -45,9 +45,9 @@ function! s:GenerateHeaderBorder(line) "{{{2
       let fill_columns = map(split(border, g:table_mode_corner),  'repeat(g:table_mode_fillchar, tablemode#utils#StrDisplayWidth(v:val))')
     endif
     let border = g:table_mode_corner . join(fill_columns, g:table_mode_corner) . g:table_mode_corner
-    echo "border 2: " . border
+    "echo "border 2: " . border
     let border = substitute(border, '^' . g:table_mode_corner . '\(.*\)' . g:table_mode_corner . '$', g:table_mode_corner_corner . '\1' . g:table_mode_corner_corner, '')
-    echo "border 3: " . border
+    "echo "border 3: " . border
 
     " Incorporate header alignment chars
     if getline(line) =~# g:table_mode_align_char
@@ -59,8 +59,8 @@ function! s:GenerateHeaderBorder(line) "{{{2
       let gcols = tablemode#align#Split(border, pat)
 
       for idx in range(len(hcols))
-          echo "hcols[idx]: " . hcols[idx]
-          echo "gcols[idx]: " . gcols[idx]
+          "echo "hcols[idx]: " . hcols[idx]
+          "echo "gcols[idx]: " . gcols[idx]
         if hcols[idx] =~# g:table_mode_align_char
           " center align
           if hcols[idx] =~# g:table_mode_align_char . '[^'.g:table_mode_align_char.']\+' . g:table_mode_align_char
@@ -73,7 +73,7 @@ function! s:GenerateHeaderBorder(line) "{{{2
         endif
       endfor
       let border = join(gcols, '')
-      echo "border: " . border
+      "echo "border: " . border
     endif
 
     if g:debug
@@ -83,18 +83,18 @@ function! s:GenerateHeaderBorder(line) "{{{2
     if tablemode#utils#strlen(cstartexpr) > 0 && getline(line) =~# cstartexpr
       let sce = matchstr(line_val, tablemode#table#StartCommentExpr())
       let ece = matchstr(line_val, tablemode#table#EndCommentExpr())
-      echo "return sce . border . ece"
+      "echo "return sce . border . ece"
       return sce . border . ece
     elseif getline(line) =~# tablemode#table#StartExpr()
       let indent = matchstr(line_val, tablemode#table#StartExpr())
-      echo "return indent . border"
+      "echo "return indent . border"
       return indent . border
     else
-      echo "return border"
+      "echo "return border"
       return border
     endif
   else
-    echo "return s:DefaultBorder()"
+    "echo "return s:DefaultBorder()"
     return s:DefaultBorder()
   endif
 endfunction
@@ -193,7 +193,7 @@ function! tablemode#table#Realign(line) "{{{2
         echo "calling tablemode#table#Realign(line), argu: " . a:line
     endif
   let line = tablemode#utils#line(a:line)
-  echo "line num: " . line
+  "echo "line num: " . line
 
   let lines = []
   let [lnum, blines] = [line, []]
@@ -202,42 +202,42 @@ function! tablemode#table#Realign(line) "{{{2
   " contents' line as we may add or delete some lines here
   while tablemode#table#IsTable(lnum)
     if tablemode#table#IsBorder(lnum)
-      echo "lnum in if: " . lnum
+      "echo "lnum in if: " . lnum
       "call insert(blines, lnum)
-      let lnum -= 1
+      "let lnum -= 1
       break
     endif
-    echo "lnum after if: " . lnum
+    "echo "lnum after if: " . lnum
     call insert(lines, {'lnum': lnum, 'text': getline(lnum)})
     let lnum -= 1
   endwhile
-  for ii in lines
-      echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
-  endfor
+  "for ii in lines
+  "    echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
+  "endfor
 
   " process the wrapped lines follow the current line
   let lnum = line + 1
-  echo "lnum: " . lnum
+  "echo "lnum: " . lnum
   while tablemode#table#IsTable(lnum)
     if tablemode#table#IsBorder(lnum)
-      echo "lnum in if: " . lnum
+      "echo "lnum in if: " . lnum
       "call add(blines, lnum)
       let s:startmovingline = lnum  " record the following rows maybe need to adjust its line
       break
     endif
-    echo "lnum after if: " . lnum
+    "echo "lnum after if: " . lnum
     call add(lines, {'lnum': lnum, 'text': getline(lnum)})
     let lnum += 1
   endwhile
-  echo "There are <" . len(lines) . "> in lines"
-  for ii in lines
-      echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
-  endfor
+  "echo "There are <" . len(lines) . "> in lines"
+  "for ii in lines
+  "    echo "in lines: <" . ii.lnum . "> <" . ii.text . ">"
+  "endfor
 
   if !empty(lines)
-      echo "call tablemode#align#Align(lines)"
+      "echo "call tablemode#align#Align(lines)"
       let [lines, offset] = tablemode#align#Align(lines)
-      echo "offset in Realign: " . offset
+      "echo "offset in Realign: " . offset
   else
       return
   endif
@@ -246,15 +246,15 @@ function! tablemode#table#Realign(line) "{{{2
   if offset != 0
       let followingLines = getline(s:startmovingline, '$')
       let lastlinenum = line('$')
-      echo "lastlinenum: " . lastlinenum
+      "echo "lastlinenum: " . lastlinenum
       " Remove the last several lines, or the last several lines will be
       " duplicated
       if offset < 0
           let deletestart = lastlinenum + offset + 1
-          echo "deletestart: " . deletestart
+          "echo "deletestart: " . deletestart
           " When there's normal there, it doesn't work
           "echo 'execute "normal :" . deletestart . ",$delete"'
-          echo 'execute ":" . deletestart . ",$delete"'
+          "echo 'execute ":" . deletestart . ",$delete"'
           execute ":" . deletestart . ",$delete"
       endif
       call setline(s:startmovingline + offset, followingLines)

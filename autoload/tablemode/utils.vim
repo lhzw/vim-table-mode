@@ -7,7 +7,7 @@ function! tablemode#utils#throw(string) abort "{{{2
 endfunction
 
 function! tablemode#utils#line(row) "{{{2
-    echo "calling tablemode#utils#line(), argu: ". a:row
+  " echo "calling tablemode#utils#line(), argu: ". a:row
   if type(a:row) == type('')
     return line(a:row)
   else
