@@ -218,16 +218,19 @@ function! tablemode#table#Realign(line) "{{{2
   " process the wrapped lines follow the current line
   let lnum = line + 1
   "echo "lnum: " . lnum
+  " record the following rows maybe need to adjust its line
+  let s:startmovingline = lnum  " record the following rows maybe need to adjust its line
   while tablemode#table#IsTable(lnum)
     if tablemode#table#IsBorder(lnum)
       "echo "lnum in if: " . lnum
       "call add(blines, lnum)
-      let s:startmovingline = lnum  " record the following rows maybe need to adjust its line
+      let s:startmovingline = lnum
       break
     endif
     "echo "lnum after if: " . lnum
     call add(lines, {'lnum': lnum, 'text': getline(lnum)})
     let lnum += 1
+    let s:startmovingline = lnum
   endwhile
   "echo "There are <" . len(lines) . "> in lines"
   "for ii in lines
@@ -244,20 +247,22 @@ function! tablemode#table#Realign(line) "{{{2
 
   "if offset == 0 " do nothing
   if offset != 0
-      let followingLines = getline(s:startmovingline, '$')
       let lastlinenum = line('$')
-      "echo "lastlinenum: " . lastlinenum
-      " Remove the last several lines, or the last several lines will be
-      " duplicated
-      if offset < 0
-          let deletestart = lastlinenum + offset + 1
-          "echo "deletestart: " . deletestart
-          " When there's normal there, it doesn't work
-          "echo 'execute "normal :" . deletestart . ",$delete"'
-          "echo 'execute ":" . deletestart . ",$delete"'
-          execute ":" . deletestart . ",$delete"
+      if s:startmovingline <= lastlinenum
+          let followingLines = getline(s:startmovingline, '$')
+          "echo "lastlinenum: " . lastlinenum
+          " Remove the last several lines, or the last several lines will be
+          " duplicated
+          if offset < 0
+              let deletestart = lastlinenum + offset + 1
+              "echo "deletestart: " . deletestart
+              " When there's normal there, it doesn't work
+              "echo 'execute "normal :" . deletestart . ",$delete"'
+              "echo 'execute ":" . deletestart . ",$delete"'
+              execute ":" . deletestart . ",$delete"
+          endif
+          call setline(s:startmovingline + offset, followingLines)
       endif
-      call setline(s:startmovingline + offset, followingLines)
   endif
 
   for aline in lines
